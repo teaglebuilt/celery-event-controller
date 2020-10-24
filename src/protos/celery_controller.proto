@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+/*
+    Core objects.
+*/
+
+message TaskMessage {
+    double timestamp = 1;
+    string state = 2;
+    string name = 3;
+    string routing_key = 4;
+    string uuid = 5;
+    int32 retries = 6;
+    string args = 7;
+    string kwargs = 8;
+    string result = 9;
+    string traceback = 10;
+    string result_meta = 11;
+}
+
+message WorkerMessage {
+    double timestamp = 1;
+    string state = 2;
+    string hostname = 3;
+    int32 pid = 4;
+    string sw_sys = 5;
+    string sw_ident = 6;
+    string sw_ver = 7;
+    repeated double loadavg = 8;
+    int32 processed = 9;
+    float freq = 10;
+    repeated double heartbeats = 11;
+}
+
+message RealtimeMessage {
+    oneof message {
+        TaskMessage task = 1;
+        WorkerMessage worker = 2;
+    }
+}
+
+message StatsMessage {
+    int32 task_count = 1;
+    int32 event_count = 2;
+    int32 len_tasks = 3;
+    int32 len_workers = 4;
+}
+
+/*
+    Server objects.
+*/
+
+service EventServer {
+    rpc capture_realtime (CaptureRequest) returns (stream RealtimeMessage);
+    rpc get_metrics (Null) returns (StatsMessage);
+}
+
+message PatternFilter {
+    string pattern = 1;
+    bool negate = 2;
+}
+
+message CaptureRequest {
+    PatternFilter tasks_capture = 1;
+    PatternFilter workers_capture = 2;
+}
+
+message Null {
+}
